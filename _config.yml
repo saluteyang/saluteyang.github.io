@@ -1,0 +1,38 @@
+# Permalinks
+permalink:           pretty
+
+# Setup
+title:               David Yang
+tagline:             Remotely Related Data Science
+url:                 http://saluteyang.github.io
+paginate:            2
+baseurl:             ""
+
+# Assets
+#
+# We specify the directory for Jekyll so we can use @imports.
+sass:
+  sass_dir:          _sass
+  style:            :compressed
+
+# About/contact
+author:
+  name:              David Yang
+  url:               
+  email:             saluteyang@gmail.com
+
+# Custom vars
+version:             2.0.0
+github:
+  repo:              https://github.com/saluteyang
+
+# Gems
+gems:
+  - jekyll-paginate
+  - jekyll-gist
+
+# Page List
+pages_list:       
+  About: '/about'
+  Archive: '/archive'
+  Feed: '/index.html'
