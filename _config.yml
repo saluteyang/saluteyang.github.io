@@ -2,8 +2,8 @@
 permalink:           pretty
 
 # Setup
-title:               David Yang
-tagline:             Remotely Related Data Science
+title:               David Yang's Personal Blog
+tagline:             Data thoughts and reveries
 url:                 http://saluteyang.github.io
 paginate:            2
 baseurl:             ""
