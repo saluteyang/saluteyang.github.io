@@ -11,7 +11,7 @@ The rather unsavory fact was never too far off in the background, however, that 
 
 ## 1. A Much Simplified Data Processing Step
 
-To keep the project feasible within the time constraint, I chose to ignore the photos collection keyed to the individual pet ID's. A few pets with missing sentiment analysis of profiles were dropped. And instead of a multi-class classficication of how soon an adoption occurs (1 month, 2 months, etc.), a binary target of whether adopted within 100 days (the longest timeframe in the data) or not was created.
+To keep the project feasible within the time constraint, I chose to ignore the photo collection keyed to the individual pet ID's. A few pets with missing profile sentiment analysis were dropped. And instead of a multi-class classficication of how soon an adoption occurs (1 month, 2 months, etc.), a binary target of whether adopted within 100 days (the longest timeframe in the data) was created.
 
 ```python
 # keep only the records that have sentiment score
@@ -29,7 +29,7 @@ def plot_features(df):
     sns.pairplot(sample, hue='AdoptionSpeed', plot_kws=dict(alpha=.3, edgecolor='none'))
 ```
 
-I proceded to use a logistic regression model as the baseline, paying attention to the features that are "large". This will become more interesting when I tested out tree-based models later and plotted out features by importance. As in the latter instance, the direction of influence is not known, only the degree of information gain.
+I proceded to use a logistic regression model as the baseline, paying attention to the features that have "large" effects. This will become more interesting when I tested out tree-based models later and plotted out features by importance. As in the latter instance, the direction of influence is not known, only the degree of information gain.
 
 ```python
 feature_coefs = pd.DataFrame({'feature': feature_names, 'coef': logit.coef_[0]})
@@ -37,7 +37,7 @@ feature_coefs['abs_coef'] = abs(feature_coefs['coef'])
 feature_coefs.sort_values(by='abs_coef', ascending=False, inplace=True)
 ```
 
-To supplement the given dataset, I scraped the wikipedia page (amid much struggling with encoding) where breed names are mapped to the breed groups as stipulated by the American Kennel Club (eg., hound, terrier, sporting, herding, toy, etc.). AKC keeps a database that shows the personalities of each individual breed. However, aggregating at the breed group level, in fact, gives a good approximation of the effect of breed on adoption.
+To supplement the given dataset, I scraped the wikipedia page (struggling mightily with encoding) where breed names are mapped to the breed groups as stipulated by the American Kennel Club (eg., hound, terrier, sporting, herding, toy, etc.). AKC keeps a database that shows the personalities of each individual breed. However, aggregating at the breed group level gives a good approximation of the effect of breed on adoption.
 
 ```python
 import unicodedata
@@ -49,7 +49,7 @@ for i in range(len(breed_groups['BreedName'])):
 
 ## 3. Performance Measurement
 
-Venuring onto tree-based models, I started off with random forest, tried extreme trees and adaboost. Not having any clear winner, I experimented with stacking these models. It's not surprisng perhaps that stacking these similar models didn't provide any performance boost. Presumably, when one of the tree models get it wrong, the others similarly did too.
+Venturing onto tree-based models, I started off with random forest, then tried extreme trees and adaboost. Not having any clear winner, I experimented with stacking these models. It's not surprisng perhaps that stacking these similar models didn't provide any performance boost. Presumably, when one of the tree models got it wrong, the others did too.
 
 Even though I used the f1 score when comparing across different models, it's good to keep an eye on things like the confustion matrix
 
@@ -78,7 +78,7 @@ plt.show()
 print("ROC AUC score = ", roc_auc_score(label_test_s, rfmodel_fin.predict_proba(Xs_test)[:, 1]))
 ```
 
-Stacking some tree models and using metaclassifier didn't improve the score.
+As mentioned, stacking some tree models and using metaclassifier didn't improve the score.
 
 ```python
 models = ['rf', 'et', 'adb']
@@ -94,7 +94,7 @@ stacked.fit(Xs_train, label_train_s)
 print(f'stacked score: {f1_score(label_test_s, stacked.predict(Xs_test))}')
 ```
 
-xgboost in conjuction with GridSearchCV did outperform the previous model but with the added complication that since the package doesn't include a native method to correct for class imbalance (as with the class_weight option for logistic regression and random forest in sklearn), I had to use the RandomOverSampler from the imblearn package.
+xgboost in conjuction with GridSearchCV did outperform the previous models but with the added complication that since the package doesn't include a native method to correct for class imbalance (as was the case with the class_weight option for logistic regression and random forest in sklearn), I had to use the RandomOverSampler from the imblearn package.
 
 ```python
 fin_model = xgb.XGBClassifier(objective='binary:logistic')
@@ -173,7 +173,7 @@ h = nn_model.fit(X_ros_train, label_ros_train, batch_size=100, epochs=200,
 nn_model.evaluate(Xs_test, label_test_s)
 ```
 
-Varying batch_size, epochs, layer number and hidden unit number will alter the results but neural nets ultimately didn't win out given the limited tries. That they are so time-consuming is a vote against using this beyond mere experimentation.
+Varying batch_size, epochs, layer number and hidden unit number will alter the results but neural nets ultimately didn't win out given the limited tries. That they are so time-consuming is a vote against going beyond mere experimentation.
 
 ## 5. Conclusions
 So what are the findings in terms of important features? 
