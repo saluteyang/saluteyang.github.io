@@ -12,6 +12,7 @@ We all have different schedules; we may have individually metered homes or some 
 ## 1. Visualizing the Time Series
 
 If you haven't seen a load profile before, here is a picture for you.
+
 ![Image load_example_chart]({{ site.url }}/images/ercot_load_11-15_eia.png)
 
 This somewhat dated graph shows the daily peak consumption for ERCOT (Electric Reliability Council of Texas) from our trusty Energy Information Agency. We see the repeating cyclical pattern here but also a lot of small wiggles along the way.

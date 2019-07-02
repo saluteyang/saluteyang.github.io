@@ -1,169 +1,62 @@
 ---
 layout: post
-title: Example content
+title: Horror Movie Box Office
 ---
 
+> Little did I know that forecasting movie box office is such a popular (and overused) example when illustrating regression techniques. When I was rummaging through my MBA notes from years ago the other night, I noticed to my chagrin even my professor did a similar exercise and came to similar conclusions. But nothing can dissuade me from doing my part for my favorite movie genre: horror. So here we go...
 
-<div class="message">
-  Howdy! This is an example blog post that shows several types of HTML content supported in this theme.
-</div>
+## An Exercise In Frustration?
 
-Cum sociis natoque penatibus et magnis <a href="#">dis parturient montes</a>, nascetur ridiculus mus. *Aenean eu leo quam.* Pellentesque ornare sem lacinia quam venenatis vestibulum. Sed posuere consectetur est at lobortis. Cras mattis consectetur purus sit amet fermentum.
+When we talk about forecasting box office, the time of forecast is important to keep in mind. Being ambitious like most, I simply leaned on IMDB and tried to extract as many features from the website as possible, thinking *"How hard can it be?"*
 
-> Curabitur blandit tempus porttitor. Nullam quis risus eget urna mollis ornare vel eu leo. Nullam id dolor id nibh ultricies vehicula ut id elit.
+If only I had (re)discovered my college professor's notes, I would see that absent opening weekend box office, the quality of publicly available information on movie productions is lacking at best. Compounding the problem is the various marketing techniques that studios and distribution companies employ, such as limited release simply to build word-of-mouth reputation. The number of screens that the movies will be released on initially is notoriously hard to find. Even more opaque and unreliable is the movie budget these movie sites quote. Who, for instance, can believe that so many movies cost such round numbers like $25 million, to the dollar. Not to mention these budget numbers almost never include the marketing expenses, which for some movies can amount to half of the total production cost.
 
-Etiam porta **sem malesuada magna** mollis euismod. Cras mattis consectetur purus sit amet fermentum. Aenean lacinia bibendum nulla sed consectetur.
+But soldier on I mus and here are a few things (or, the process, to put it more elegantly) I went through.
 
-## Inline HTML elements
+![Image horror_reg_proc]({{ site.url }}/images/horror_reg_proc.png)
 
-HTML defines a long list of available inline tags, a complete list of which can be found on the [Mozilla Developer Network](https://developer.mozilla.org/en-US/docs/Web/HTML/Element).
+It pains me to say--so I'll say it--how many different features I scraped that turned out not to help. A few failed ones include:
+* the number of billed actors
+* famous names as indicated by the frequency of appearance of said actors (this turned out to be confounding as it was revealed that a lot of the bigger mainstream horror successes were sequels and sequel would usually employ the same star actors; in this instance being a sequel that followed a success mattered more than innate star power)
+* the time distance to the nearest holiday
+* content scores as determined by the number of scenes that fall into each of violence, sex and nudity, frightening, drugs and alcohol, and profanity (yes, there are people keeping tabs on this as this information feeds into the MPAA ratings movies receive; interestingly, most of the horror movies are R-rated so the rating itself is almost moot)
 
-- **To bold text**, use `<strong>`.
-- *To italicize text*, use `<em>`.
-- Abbreviations, like <abbr title="HyperText Markup Langage">HTML</abbr> should use `<abbr>`, with an optional `title` attribute for the full phrase.
-- Citations, like <cite>&mdash; Mark otto</cite>, should use `<cite>`.
-- <del>Deleted</del> text should use `<del>` and <ins>inserted</ins> text should use `<ins>`.
-- Superscript <sup>text</sup> uses `<sup>` and subscript <sub>text</sub> uses `<sub>`.
+To get each of these features, it's quite time-consuming to identify the right tags to target on the IMDB site. But once found, a little function like the following will do.
 
-Most of these elements are styled by browsers with few modifications on our part.
+```python
+def numAwards(strng):
+    noms = 0
+    # sometimes major awards are mentioned before
+    # sometimes there are no nominations or awards
+    # sometimes there's one not the other
+    strng = str(strng)
+    wins = int(re.findall(r'\d+', strng)[0])  # we only need the total so mislabeling noms as wins here is okay
+    try:
+        noms = int(re.findall(r'\d+', strng)[1])
+    except IndexError:
+        pass
+    awards = wins + noms
+    return awards
+```
+## Which Features to Keep?
 
-## Footnotes
+To answer the question, I'd employ the wonderful property of lasso regression being able to zero out "non-important" features, defining the following function to examine the coefficients.
+```python
+def getCoefPolyFeatures(train_data, model_name, desc_n = None):
+    polynomial_model.get_feature_names()
+    polynomial_model.get_feature_names(train_data.columns)
+    features_poly = pd.DataFrame(
+        {'features': polynomial_model.get_feature_names(train_data.columns), 'coefs': model_name.coef_})
+    features_poly = features_poly[features_poly.coefs != 0]
+    features_poly['abs_coefs'] = abs(features_poly['coefs'])
+    if desc_n is not None:
+        features_poly = features_poly.sort_values(by='abs_coefs', ascending=False).head(desc_n)
+    return features_poly
+```
+Additionally, to account for interaction terms, sklearn's PolynomialFeatures would prove useful. Given that statsmodels package does a much better job of reporting diagnostic tests, once I narrowed down to suitable sets of features that were candidates for the final model, I would use the ols funciton from <code>statsmodels.formula.api</code> to generate the fit and summaries.
 
-Footnotes are supported as part of the Markdown syntax. Here's one in action. Clicking this number[^fn-sample_footnote] will lead you to a footnote. The syntax looks like:
+## What Were the Findings?
 
-{% highlight text %}
-Clicking this number[^fn-sample_footnote]
-{% endhighlight %}
+Finally, what ended up being useful were a number of interaction terms between opening weekend box office (yeah, prediction without it was mostly futile) and critic reception score (metacritic) and some wider economic indicator (consumer confidence index). The eventual R-squared on the test set was hardly 0.4, so even with the inclusion of opening weekend, the model left something to be desired.
 
-Each footnote needs the `^fn-` prefix and a unique ID to be referenced for the footnoted content. The syntax for that list looks something like this:
-
-{% highlight text %}
-[^fn-sample_footnote]: Handy! Now click the return link to go back.
-{% endhighlight %}
-
-You can place the footnoted content wherever you like. Markdown parsers should properly place it at the bottom of the post.
-
-## Heading
-
-Vivamus sagittis lacus vel augue rutrum faucibus dolor auctor. Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit. Morbi leo risus, porta ac consectetur ac, vestibulum at eros.
-
-### Code
-
-Inline code is available with the `<code>` element. Snippets of multiple lines of code are supported through Pygments. Longer lines will automatically scroll horizontally when needed.
-
-{% highlight js %}
-// Example can be run directly in your JavaScript console
-
-// Create a function that takes two arguments and returns the sum of those arguments
-var adder = new Function("a", "b", "return a + b");
-
-// Call the function
-adder(2, 6);
-// > 8
-{% endhighlight %}
-
-You may also optionally show code snippets with line numbers. Add `linenos` to the Pygments tags.
-
-{% highlight js linenos %}
-// Example can be run directly in your JavaScript console
-
-// Create a function that takes two arguments and returns the sum of those arguments
-var adder = new Function("a", "b", "return a + b");
-
-// Call the function
-adder(2, 6);
-// > 8
-{% endhighlight %}
-
-Aenean lacinia bibendum nulla sed consectetur. Etiam porta sem malesuada magna mollis euismod. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa.
-
-### Gists via GitHub Pages
-
-Vestibulum id ligula porta felis euismod semper. Nullam quis risus eget urna mollis ornare vel eu leo. Donec sed odio dui.
-
-{% gist 13f94b734a4ddb132735 gist.md %}
-
-Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis vestibulum. Nullam quis risus eget urna mollis ornare vel eu leo. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec sed odio dui. Vestibulum id ligula porta felis euismod semper.
-
-### Lists
-
-Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Aenean lacinia bibendum nulla sed consectetur. Etiam porta sem malesuada magna mollis euismod. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus.
-
-* Praesent commodo cursus magna, vel scelerisque nisl consectetur et.
-* Donec id elit non mi porta gravida at eget metus.
-* Nulla vitae elit libero, a pharetra augue.
-
-Donec ullamcorper nulla non metus auctor fringilla. Nulla vitae elit libero, a pharetra augue.
-
-1. Vestibulum id ligula porta felis euismod semper.
-2. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.
-3. Maecenas sed diam eget risus varius blandit sit amet non magna.
-
-Cras mattis consectetur purus sit amet fermentum. Sed posuere consectetur est at lobortis.
-
-<dl>
-  <dt>HyperText Markup Language (HTML)</dt>
-  <dd>The language used to describe and define the content of a Web page</dd>
-
-  <dt>Cascading Style Sheets (CSS)</dt>
-  <dd>Used to describe the appearance of Web content</dd>
-
-  <dt>JavaScript (JS)</dt>
-  <dd>The programming language used to build advanced Web sites and applications</dd>
-</dl>
-
-Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Nullam quis risus eget urna mollis ornare vel eu leo.
-
-### Images
-
-Quisque consequat sapien eget quam rhoncus, sit amet laoreet diam tempus. Aliquam aliquam metus erat, a pulvinar turpis suscipit at.
-
-![placeholder](http://placehold.it/800x400 "Large example image")
-![placeholder](http://placehold.it/400x200 "Medium example image")
-![placeholder](http://placehold.it/200x200 "Small example image")
-
-### Tables
-
-Aenean lacinia bibendum nulla sed consectetur. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-
-<table>
-  <thead>
-    <tr>
-      <th>Name</th>
-      <th>Upvotes</th>
-      <th>Downvotes</th>
-    </tr>
-  </thead>
-  <tfoot>
-    <tr>
-      <td>Totals</td>
-      <td>21</td>
-      <td>23</td>
-    </tr>
-  </tfoot>
-  <tbody>
-    <tr>
-      <td>Alice</td>
-      <td>10</td>
-      <td>11</td>
-    </tr>
-    <tr>
-      <td>Bob</td>
-      <td>4</td>
-      <td>3</td>
-    </tr>
-    <tr>
-      <td>Charlie</td>
-      <td>7</td>
-      <td>9</td>
-    </tr>
-  </tbody>
-</table>
-
-Nullam id dolor id nibh ultricies vehicula ut id elit. Sed posuere consectetur est at lobortis. Nullam quis risus eget urna mollis ornare vel eu leo.
-
------
-
-Want to see something else added? <a href="https://github.com/poole/poole/issues/new">Open an issue.</a>
-
-[^fn-sample_footnote]: Handy! Now click the return link to go back.
+![Image reg_diag_rpt]({{ site.url }}/images/smf_diag_movie_reg.png)
