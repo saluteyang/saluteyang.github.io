@@ -25,7 +25,7 @@ Here are a few modeling approaches that I tried for this problem:
 
 * classical time series approach, best typified by the sophisticated fbprophet package develped by Facebook
 * decision tree model using weather forecast and appropriately lagged variables as features
-* recurrent neural net that require very small initial setup but long experimentation and training time to nail down good (enough) model with acceptable time/accuracy trade-off
+* recurrent neural net that requires very small initial setup but needs long experimentation and training time to nail down good (enough) model with acceptable time/accuracy trade-off
 
 ### a. Prophet
 Once I've wrangled the input data into the form that Prophet requires, the fitting and predition steps are relatively straight forward. 
@@ -38,12 +38,12 @@ forecast = m.predict(future)
 forecast[['ds', 'yhat', 'yhat_lower', 'yhat_upper']].tail()
 ```
 
-The underlying model is a aggregation of decomposed trend, seasonality and holiday components. Each one of these individual components has quite a bit of complexity underneath. The trend components admit change points (how does one find change points?), the seasonality component can have multiple seasonalities embedded and disentangled, if you will, by a Fourier series. The sum result is that the curve fitting is non-trivial and I found out the hard way that on large problem sets such as this (hourly input data over a number of years), the computer can chug along for quite a while doing the compute.
+The underlying model is an aggregation of decomposed trend, seasonality and holiday components. Each one of these individual components has quite a bit of complexity underneath. The trend component admits change points (*How does one find change points?* You may ask.), the seasonality component can have multiple seasonalities embedded and disentangled, if you will, only by a Fourier series. The sum result is that the curve fitting is non-trivial and I found out the hard way that on large problem sets such as this (hourly input data over a number of years), the computer can chug along for quite a while doing the compute.
 
 For anyone interested in the inner workings, definitely check out Facebook's site on [this tool](https://facebook.github.io/prophet/)
 
 ### b. Decision Tree Regressor
-To avoid using something that is a little black-boxy and a little janky at times, it's easy to write up a tree-based model with some care applied to engineering the right features. Here, there is a some literature out there and I liberally borrowed, for example, ideas from this matlab [post](https://www.mathworks.com/matlabcentral/fileexchange/28684-electricity-load-and-price-forecasting-webinar-case-study) for solving a similar problem.
+To avoid using something that is a little black-boxy and janky at times, it's easy to write up a tree-based model with some care applied to engineering the right features. Here, there is a some literature out there and I liberally borrowed ideas from this matlab [post](https://www.mathworks.com/matlabcentral/fileexchange/28684-electricity-load-and-price-forecasting-webinar-case-study) for solving a similar problem.
 
 Eventually, the following variables were created in my case:
 * hourly consumption of the previous day
@@ -54,9 +54,9 @@ Eventually, the following variables were created in my case:
 The above set is in addition to the weather variables that would have been made available at the time of the load forecast, the most important of which are dry bulb temperature and humidity.
 
 ### c. RNN
-Where's the fun if we didn't experiment with recurrent neural net? This class of prediction prolem, of which weather forecast itself is a cannonical example, lends naturally to this approach, although the implementation (using generator when doing the batch processing) and model selection (playing with different architectures of layers and hidden units) may be too much of a chore to go through for business cases that can be well-served by the more explainable models in the prior sections. Not to mention that if the training time involved for RNN is on the scale of hours instead of minutes, the forecast itself may be stale before it even becomes available.
+Where's the fun if we didn't experiment with recurrent neural net? This class of prediction prolem, of which weather forecast itself is a cannonical example, lends naturally to this approach, although implementation (using generator when doing the batch processing) and model selection (playing with different architectures of layers and hidden units) may be too much of a chore to go through for business cases that can be well-served by the more explainable models in the prior sections. Not to mention that if the training time involved for RNN is on the scale of hours instead of minutes, the forecast itself may be stale before it even becomes available.
 
-Regardless, I find the exercise illuminating if not for practising keeeping track of things especially in a generator setting:
+Regardless, I find the exercise illuminating if not for practising keeping track of things especially in a generator context:
 
 ```python
 def generator(data, lookback, delay, min_index, max_index,

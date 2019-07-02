@@ -11,13 +11,13 @@ When we talk about forecasting box office, the time of forecast is important to 
 
 If only I had (re)discovered my college professor's notes, I would see that absent opening weekend box office, the quality of publicly available information on movie productions is lacking at best. Compounding the problem is the various marketing techniques that studios and distribution companies employ, such as limited release simply to build word-of-mouth reputation. The number of screens that the movies will be released on initially is notoriously hard to find. Even more opaque and unreliable is the movie budget these movie sites quote. Who, for instance, can believe that so many movies cost such round numbers like $25 million, to the dollar. Not to mention these budget numbers almost never include the marketing expenses, which for some movies can amount to half of the total production cost.
 
-But soldier on I mus and here are a few things (or, the process, to put it more elegantly) I went through.
+But soldier on I must and here are a few things (or, the process, to put it more elegantly) I went through.
 
 ![Image horror_reg_proc]({{ site.url }}/images/horror_reg_proc.png)
 
 It pains me to say--so I'll say it--how many different features I scraped that turned out not to help. A few failed ones include:
 * the number of billed actors
-* famous names as indicated by the frequency of appearance of said actors (this turned out to be confounding as it was revealed that a lot of the bigger mainstream horror successes were sequels and sequel would usually employ the same star actors; in this instance being a sequel that followed a success mattered more than innate star power)
+* famous names as indicated by the frequency of appearance of said actors (this turned out to be confounding as it was revealed that a lot of the bigger mainstream horror successes were sequels and they would usually employ the same star actors; in this instance being a sequel that followed a success mattered more than innate star power)
 * the time distance to the nearest holiday
 * content scores as determined by the number of scenes that fall into each of violence, sex and nudity, frightening, drugs and alcohol, and profanity (yes, there are people keeping tabs on this as this information feeds into the MPAA ratings movies receive; interestingly, most of the horror movies are R-rated so the rating itself is almost moot)
 
@@ -53,7 +53,7 @@ def getCoefPolyFeatures(train_data, model_name, desc_n = None):
         features_poly = features_poly.sort_values(by='abs_coefs', ascending=False).head(desc_n)
     return features_poly
 ```
-Additionally, to account for interaction terms, sklearn's PolynomialFeatures would prove useful. Given that statsmodels package does a much better job of reporting diagnostic tests, once I narrowed down to suitable sets of features that were candidates for the final model, I would use the ols funciton from <code>statsmodels.formula.api</code> to generate the fit and summaries.
+Additionally, to account for interaction terms, sklearn's <code>PolynomialFeatures</code> would prove useful. Given that statsmodels package does a much better job of reporting diagnostic tests, once I narrowed down to suitable sets of features that were candidates for the final model, I would use the ols funciton from <code>statsmodels.formula.api</code> to generate fit and summaries.
 
 ## What Were the Findings?
 
